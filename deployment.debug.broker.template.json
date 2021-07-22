@@ -84,8 +84,7 @@
                 },
                 "HostConfig": {
                   "Binds": [
-                    "/etc/ssl/certs/:/etc/ssl/certs/:ro",
-                    "/home/azureuser/work/server/:/app/server/:ro"
+                    "/etc/ssl/certs/:/etc/ssl/certs/:ro"
                   ],
                   "PortBindings": {
                     "5678/tcp": [
