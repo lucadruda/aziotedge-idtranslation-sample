@@ -8,8 +8,7 @@
           "settings": {
             "minDockerVersion": "v1.25",
             "loggingOptions": "",
-            "registryCredentials": {
-            }
+            "registryCredentials": {}
           }
         },
         "systemModules": {
@@ -84,7 +83,8 @@
                 },
                 "HostConfig": {
                   "Binds": [
-                    "/etc/ssl/certs/:/etc/ssl/certs/:ro"
+                    "/etc/ssl/certs/:/etc/ssl/certs/:ro",
+                    "/home/azureuser/work/server/:/app/server/:ro"
                   ],
                   "PortBindings": {
                     "5678/tcp": [
@@ -145,7 +145,8 @@
                   ],
                   "resources": [
                     "$iothub/+/messages/events/#",
-                    "$iothub/#"
+                    "$iothub/+/twin/get/#",
+                    "$iothub/+/twin/res/#"
                   ]
                 }
               ]
