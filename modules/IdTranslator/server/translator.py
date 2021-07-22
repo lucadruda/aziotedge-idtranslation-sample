@@ -25,16 +25,20 @@ class Translator():
         self.auth = EdgeAuth.create_from_environment()
         self.terminate = False
         self.connected = False
+        self._running_loop = asyncio.get_running_loop()
         self.auth.set_sas_token_renewal_timer(self.handle_sas_token_renewed)
         log('Client Id: {}'.format(self.auth.client_id))
         # Create an MQTT client object, passing in the credentials we get from the auth object
         self.mqtt_client = mqtt.Client(self.auth.client_id)
         self.mqtt_client.enable_logger()
-        log('Username: "{}", Password: "{}"'.format(self.auth.username, self.auth.password))
-        self.mqtt_client.username_pw_set(self.auth.username, self.auth.password)
+        log('Username: "{}", Password: "{}"'.format(
+            self.auth.username, self.auth.password))
+        self.mqtt_client.username_pw_set(
+            self.auth.username, self.auth.password)
         # In this sample, we use the TLS context that the auth object builds for
         # us.  We could also build our own from the contents of the auth object
-        self.mqtt_client.tls_set_context(self.auth.create_tls_context())  # QUESTION: IS THIS THE SAME AS 1883 vs 8883?
+        # QUESTION: IS THIS THE SAME AS 1883 vs 8883?
+        self.mqtt_client.tls_set_context(self.auth.create_tls_context())
         self._clients = {}
 
     def handle_on_connect(
@@ -51,14 +55,15 @@ class Translator():
 
             # subscribe to desired property change
             self.mqtt_client.subscribe(desired_prop_topic, qos=1)
-            self.mqtt_client.message_callback_add(desired_prop_topic, self._on_prop_change)
+            self.mqtt_client.message_callback_add(
+                desired_prop_topic, self._on_prop_change)
 
             # subscribe to command
             self.mqtt_client.subscribe(command_res_topic, qos=1)
-            self.mqtt_client.message_callback_add(command_res_topic, self._on_command)
+            self.mqtt_client.message_callback_add(
+                command_res_topic, self._on_command)
 
             # fallback for other topics
-            self.mqtt_client.subscribe("$iothub/twin/res/#")
             self.mqtt_client.on_message = self._handle_message
         elif rc == mqtt.CONNACK_REFUSED_SERVER_UNAVAILABLE:
             # actually, server is available, but username is probably wrong
@@ -72,7 +77,8 @@ class Translator():
         log("handle_sas_token_renewed")
 
         # Set the new MQTT auth parameters
-        self.mqtt_client.username_pw_set(self.auth.username, self.auth.password)
+        self.mqtt_client.username_pw_set(
+            self.auth.username, self.auth.password)
 
         # Reconnect the client.  (This actually just disconnects it and lets Paho's automatic
         # reconnect connect again.)
@@ -104,30 +110,29 @@ class Translator():
         if client_id not in self._clients:
             self._clients[client_id] = msg_cb
             log('Device {} registered to the broker!'.format(client_id))
-            log('Subscribing to $iothub/{}/twin/res/#'.format(client_id))
-            # self.mqtt_client.subscribe('$iothub/{}/twin/res/#'.format(client_id), qos=1)
-            # self.mqtt_client.message_callback_add('$iothub/{}/twin/res/#'.format(client_id), self._on_twin_response)
+            self.mqtt_client.subscribe(
+                '$iothub/{}/twin/res/#'.format(client_id), qos=1)
 
     def _handle_message(self, client, userdata, msg: mqtt.MQTTMessage):
         log('Received topic "{}": "{}"'.format(msg.topic, msg.payload))
 
     async def get_twin(self, device_id: str):
-        
         req_id = str(uuid4())
-        twin_topic = "$iothub/{}/twin/GET/?$rid={}".format(device_id, req_id)
-        self.mqtt_client.subscribe("$iothub/{}/twin/res/200/?$rid={}".format(device_id, req_id), qos=1)
-        self.mqtt_client.message_callback_add(twin_res_topic, self._on_twin_response)
+        twin_topic = "$iothub/{}/twin/get/?$rid={}".format(device_id, req_id)
+        self.mqtt_client.message_callback_add(
+            '$iothub/{}/twin/res/#'.format(device_id), self._on_twin_response)
         log('Asking twin for device {}. {}'.format(device_id, twin_topic))
-        self.mqtt_client.publish(twin_topic,qos=1)
-        # self.mqtt_client.subscribe('$iothub/twin/res/200/?rid={}'.format(req_id))
-        # self.mqtt_client.publish("$iothub/twin/GET/?$rid={}".format(req_id), qos=1)
+        self.mqtt_client.publish(twin_topic, qos=1)
 
     def _on_twin_response(self, client, userdata, msg: mqtt.MQTTMessage):
         log('Received twin')
         match = twin_topic_compiler.match(msg.topic)
         if match.group(1) is not None:
             device_id = match.group(1)
-            self._clients[device_id]('twin', msg.payload)
+            self._running_loop.create_task(self.return_twin(device_id, msg.payload.decode('utf-8')))
+
+    async def return_twin(self, device_id, payload):
+        await self._clients[device_id]('twin', payload)
 
     def _on_prop_change(self, client, userdata, msg: mqtt.MQTTMessage):
         match = desired_topic_compiler.match(msg.topic)
