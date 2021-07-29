@@ -9,6 +9,7 @@ from . import constants
 from .waitable import WaitableDict
 from .incoming_message_list import IncomingMessageList
 from . import topic_matcher, topic_builder
+from .derive_key import compute_derived_symmetric_key
 
 __all__ = [
     "EdgeAuth",
@@ -19,4 +20,5 @@ __all__ = [
     "topic_builder",
     "WaitableDict",
     "IncomingMessageList",
+    "compute_derived_symmetric_key"
 ]

@@ -84,6 +84,7 @@
                 "HostConfig": {
                   "Binds": [
                     "/etc/ssl/certs/:/etc/ssl/certs/:ro",
+                    "/etc/aziot/config.toml:/app/config.toml:ro",
                     "/home/azureuser/work/server/:/app/server/:ro"
                   ],
                   "PortBindings": {
@@ -153,6 +154,12 @@
             }
           ]
         }
+      }
+    },
+    "IdTranslator": {
+      "properties.desired": {
+        "EnrollmentGroupKey": "60Vi/Qjv8Jpxz4ejLC/WjVB0MMgOg0efKuA5hduo1yvicurOa36kTgIjOeyjG2XWkj9w1lKTNG7uYJV2IBxazw==",
+        "ApiKey": "SharedAccessSignature sr=34812c39-064d-49e6-88f8-f966a15ea123&sig=3y4vwgJLz%2Febp0Z6XW6cRrryLgwhD0T1Zg3vxqbDsog%3D&skn=EdgeManager&se=1659104385012"
       }
     }
   }

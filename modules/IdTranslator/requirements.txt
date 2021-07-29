@@ -1,4 +1,5 @@
 azure-iot-device
+toml
 black; python_version >= '3.6'
 pre-commit
 flake8

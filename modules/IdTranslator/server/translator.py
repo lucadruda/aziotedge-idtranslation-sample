@@ -6,8 +6,11 @@ from os import environ
 import json
 from uuid import uuid4
 from random import randint
+from .provision import ProvisioningManager
+import toml
 
 twin_res_topic = '$iothub/+/twin/res/#'
+twin_module_res_topic = '$iothub/twin/res/#'
 desired_prop_topic = '$iothub/+/twin/desired/#'
 command_res_topic = '$iothub/+/methods/res/#'
 twin_topic_compiler = compile('\$iothub\/([\S]+)\/twin\/res')
@@ -23,7 +26,9 @@ class Translator():
     def __init__(self):
        # Create an auth object which can help us get the credentials we need in order to connect
         self.auth = EdgeAuth.create_from_environment()
+        self._config = toml.load('/app/config.toml')
         self.terminate = False
+        self._initialized = False
         self.connected = False
         self._running_loop = asyncio.get_running_loop()
         self.auth.set_sas_token_renewal_timer(self.handle_sas_token_renewed)
@@ -45,7 +50,6 @@ class Translator():
         self, mqtt_client: mqtt.Client, userdata, flags, rc: int
     ) -> None:
         # Set an event when we're connected so our main thread can continue
-        log(rc)
         if rc == mqtt.MQTT_ERR_SUCCESS:
             self.connected = True
             log('Module connected to hub!')
@@ -65,6 +69,17 @@ class Translator():
 
             # fallback for other topics
             self.mqtt_client.on_message = self._handle_message
+
+            # request module twin
+            log('Fetching module twin')
+            req_id = str(uuid4())
+            twin_topic = "$iothub/twin/GET/?$rid={}".format(req_id)
+            self.mqtt_client.subscribe("$iothub/{}/{}/twin/res/200/?$rid={}".format(
+                environ['IOTEDGE_DEVICEID'], environ['IOTEDGE_MODULEID'], req_id), qos=1)
+            self.mqtt_client.message_callback_add(
+                twin_module_res_topic, self._on_module_twin_response)
+            self.mqtt_client.publish(twin_topic, qos=1)
+
         elif rc == mqtt.CONNACK_REFUSED_SERVER_UNAVAILABLE:
             # actually, server is available, but username is probably wrong
             pass
@@ -106,9 +121,14 @@ class Translator():
             property_topic, json.dumps(data).encode(), qos=1)
 
     async def register_client(self, client_id, options, msg_cb):
+        if not self._initialized:
+            return  # no-op. we're not ready yet
         log('Registering device "{}"'.format(client_id))
         if client_id not in self._clients:
             self._clients[client_id] = msg_cb
+            log('Provisioning device {}'.format(client_id))
+            hub = await self._provisioning_manager.provision_device(client_id)
+            log('Device provisioned to {}'.format(hub))
             log('Device {} registered to the broker!'.format(client_id))
             self.mqtt_client.subscribe(
                 '$iothub/{}/twin/res/#'.format(client_id), qos=1)
@@ -123,6 +143,15 @@ class Translator():
             '$iothub/{}/twin/res/#'.format(device_id), self._on_twin_response)
         log('Asking twin for device {}. {}'.format(device_id, twin_topic))
         self.mqtt_client.publish(twin_topic, qos=1)
+
+    def _on_module_twin_response(self, client, userdata, msg: mqtt.MQTTMessage):
+        log('Received module twin.')
+        twin = json.loads(msg.payload)
+        self._API_KEY = twin['desired']['ApiKey']
+        self._ENROLLMENT_KEY = twin['desired']['EnrollmentGroupKey']
+        self._provisioning_manager = ProvisioningManager(
+            self._config['provisioning']['id_scope'], self._ENROLLMENT_KEY)
+        self._initialized = True
 
     def _on_twin_response(self, client, userdata, msg: mqtt.MQTTMessage):
         log('Received twin')

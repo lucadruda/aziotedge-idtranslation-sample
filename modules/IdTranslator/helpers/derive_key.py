@@ -11,6 +11,3 @@ def compute_derived_symmetric_key(secret, reg_id):
             secret, msg=reg_id.encode("utf8"), digestmod=sha256
         ).digest()
     ).decode("utf-8")
-
-
-print(compute_derived_symmetric_key(argv[1],argv[2]))

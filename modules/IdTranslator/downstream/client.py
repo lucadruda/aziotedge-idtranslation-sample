@@ -83,7 +83,7 @@ class Client():
             await self._writer.wait_closed()
 
     async def connect(self):
-        self._writer.write(json.dumps({'type': 'connect', 'id': self._id, 'data': {'primary_key': self._key, 'custom': True}}).encode() + b'\n')
+        self._writer.write(json.dumps({'type': 'connect', 'id': self._id, 'data': {'custom': True}}).encode() + b'\n')
         await self._writer.drain()
 
     async def send_telemetry(self, message):
