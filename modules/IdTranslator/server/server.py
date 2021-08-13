@@ -26,6 +26,7 @@ class Server():
         while request != 'quit!':
             try:
                 request = (await reader.readline()).decode('utf8')
+                log(request)
                 if not request:
                     break
                 else:
@@ -54,8 +55,6 @@ class Server():
     async def _handle_connect(self, client, options, writer):
         # This callback gets executed every time a C2D message arrives (either direct-method, twin change or offline commands)
         async def msg_cb(cmd_type, payload):
-            log('I am {}'.format(client))
-            log('Received type: {}. Payload: {}'.format(cmd_type, payload))
             if cmd_type == 'twin':
                 self._clients[client].write(json.dumps({'type': 'twin_res', 'data': payload}).encode() + b'\n')
                 await self._clients[client].drain()
