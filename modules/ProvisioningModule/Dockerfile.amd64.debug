@@ -1,0 +1,13 @@
+FROM amd64/python:3.8-slim-buster
+
+WORKDIR /app
+
+RUN pip install ptvsd==4.1.3
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+RUN pip install watchdog[watchmedo]
+
+COPY . .
+# RUN rm translator.py
+
+CMD [ "watchmedo", "auto-restart", "--directory=./", "--pattern=*.py", "--recursive", "python3", "--", "-u", "./main.py" ]

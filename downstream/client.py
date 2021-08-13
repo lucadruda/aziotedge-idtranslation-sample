@@ -7,23 +7,6 @@ from random import randint
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 64132        # The port used by the server
 
-
-# class Client():
-
-#     def __init__(self, id):
-#         self._id = id
-#         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#         self._socket.connect((HOST, PORT))
-
-#     def send_telemetry(self, data):
-#         self._socket.sendall('{}'.format(json.dumps({'type': 'telemetry', 'data': data})).encode())
-
-#     def send_property(self, data):
-#         self._socket.sendall('{}'.format(json.dumps({'type': 'property', 'data': data})).encode())
-
-#     def get_twin(self):
-#         self._socket.sendall('{}'.format(json.dumps({'type': 'twin_req'})).encode())
-
 class Client():
 
     def __init__(self, id, key):
@@ -100,13 +83,6 @@ class Client():
         self._writer.write(json.dumps({'type': 'twin_req', 'id': self._id}).encode() + b'\n')
         await self._writer.drain()
         print("Waiting for twin")
-        # try:
-        #     twin_res = json.loads((await self._reader.read(255)).decode('utf8'))
-        #     if twin_res['type'] == 'twin_res':
-        #         self._twin = twin_res['data']
-        #         print('Device twin: {}'.format(self._twin))
-        # except Exception as e:
-        #     print(e)
 
     @property
     def on_command(self, fn):

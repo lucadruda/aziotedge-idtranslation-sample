@@ -5,7 +5,7 @@ import os
 
 
 async def main():
-    trans_type = os.environ.get('ID_TRANSLATOR_TYPE')
+    trans_type = os.environ.get('ID_TRANSLATOR_TYPE', 'translator')
     print("Starting module.")
     translator = Translator() if trans_type == 'translator' else MultiClient()
     server = Server(translator)

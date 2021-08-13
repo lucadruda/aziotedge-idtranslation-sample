@@ -1,8 +1,9 @@
 from azure.iot.device.aio import ProvisioningDeviceClient
-from helpers import compute_derived_symmetric_key
+from base64 import b64decode, b64encode
+from hmac import HMAC
+from hashlib import sha256
 
 DPS_ENDPOINT = 'global.azure-devices-provisioning.net'
-
 
 class ProvisioningManager():
 
@@ -10,7 +11,7 @@ class ProvisioningManager():
         self._group_key = group_key
         self._scope_id = scope_id
 
-    async def provision_device(self, device_id):
+    async def provision_device(self, device_id, model_id=None, gateway_id=None):
         provisioning_device_client = ProvisioningDeviceClient.create_from_symmetric_key(
             provisioning_host=DPS_ENDPOINT,
             registration_id=device_id,
@@ -19,11 +20,24 @@ class ProvisioningManager():
                 self._group_key, device_id),
         )
 
-        provisioning_device_client.provisioning_payload = {
-            "iotcModelId": "dtmi:repsolPoc:RepsolDevice16z;1", "iotcGateway": {"iotcGatewayId": "edge-01"}}
+        provisioning_device_client.provisioning_payload = {}
+        if model_id is not None:
+            provisioning_device_client.provisioning_payload["iotcModelId"] = model_id
+        if gateway_id is not None:
+            provisioning_device_client.provisioning_payload["iotcGateway"] = {
+                "iotcGatewayId": gateway_id}
         registration_result = await provisioning_device_client.register()
 
         if registration_result.status == "assigned":
             return registration_result.registration_state.assigned_hub
         else:
             return None
+
+
+def compute_derived_symmetric_key(secret, reg_id):
+    secret = b64decode(secret)
+    return b64encode(
+        HMAC(
+            secret, msg=reg_id.encode("utf8"), digestmod=sha256
+        ).digest()
+    ).decode("utf-8")

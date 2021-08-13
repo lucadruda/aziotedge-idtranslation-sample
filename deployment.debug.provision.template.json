@@ -69,33 +69,25 @@
           }
         },
         "modules": {
-          "IdTranslator": {
+          "ProvisioningModule": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "${MODULES.IdTranslator.debug}",
+              "image": "${MODULES.ProvisioningModule.debug}",
               "createOptions": {
                 "ExposedPorts": {
-                  "5678/tcp": {},
-                  "64132/tcp": {}
+                  "5678/tcp": {}
                 },
                 "HostConfig": {
                   "Binds": [
-                    "/etc/ssl/certs/:/etc/ssl/certs/:ro",
-                    "/etc/aziot/config.toml:/app/config.toml:ro",
-                    "/home/azureuser/work/server/:/app/server/:ro"
+                    "/etc/aziot/config.toml:/app/config.toml:ro"
                   ],
                   "PortBindings": {
                     "5678/tcp": [
                       {
                         "HostPort": "5678"
-                      }
-                    ],
-                    "64132/tcp": [
-                      {
-                        "HostPort": "64132"
                       }
                     ]
                   }
@@ -103,8 +95,8 @@
               }
             },
             "env": {
-              "ID_TRANSLATOR_TYPE": {
-                "value": "translator"
+              "RuntimeLogLevel": {
+                "value": "debug"
               }
             }
           }
@@ -159,6 +151,11 @@
             }
           ]
         }
+      }
+    },
+    "ProvisioningModule": {
+      "properties.desired": {
+        "ENROLLMENT_KEY": "<ENROLL_KEY>"
       }
     }
   }

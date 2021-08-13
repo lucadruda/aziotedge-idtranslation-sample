@@ -6,7 +6,6 @@ from os import environ
 import json
 from uuid import uuid4
 from random import randint
-from .provision import ProvisioningManager
 import toml
 
 twin_res_topic = '$iothub/+/twin/res/#'
@@ -26,7 +25,6 @@ class Translator():
     def __init__(self):
        # Create an auth object which can help us get the credentials we need in order to connect
         self.auth = EdgeAuth.create_from_environment()
-        self._config = toml.load('/app/config.toml')
         self.terminate = False
         self._initialized = False
         self.connected = False
@@ -155,10 +153,6 @@ class Translator():
     def _on_module_twin_response(self, client, userdata, msg: mqtt.MQTTMessage):
         log('Received module twin. Initializing broker...')
         twin = json.loads(msg.payload)
-        self._API_KEY = twin['desired']['ApiKey']
-        self._ENROLLMENT_KEY = twin['desired']['EnrollmentGroupKey']
-        self._provisioning_manager = ProvisioningManager(
-            self._config['provisioning']['id_scope'], self._ENROLLMENT_KEY)
         self._initialized = True
         log('Broker initialized.')
 
