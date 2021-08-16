@@ -10,6 +10,13 @@ The _modules_ folder contains the following modules written in Python:
 Downstream devices or edge modules asks to provision a device by sending a specific request to this module.
 - [__Identity Translator__](./modules/IdTranslator): The module is responsible to act on behalf of downstream devices. It sends telemetry and receive properties and commands for devices connected to it. By leveraging new features in IoT Edge v1.2, it can use a multiplexed connection to IoT Hub without creating underlying device clients.
 The protocol translation work is simulated by a socket server communicating with the translation core.
+
+## Requirements
+- Python 3.6+
+- Visual Studio Code
+- Azure IoT Tools for VSCode
+- An Azure IoT Edge device/VM
+
 ## Instructions
 
 The quickest way to run the sample solution is to use [Visual Studio Code](https://code.visualstudio.com/) and the [Azure IoT Tools](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.azure-iot-tools) extension.
