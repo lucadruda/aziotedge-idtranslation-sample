@@ -16,6 +16,25 @@ The quickest way to run the sample solution is to use [Visual Studio Code](https
 You may also need Docker to build and push container images.
 
 
+### Prepare deployment manifest
+Configuration of the edge device is done through deployment manifests.
+This repo contains some manifest templates (_deployment.*.template.json) that can be edited, cloned and used to generate final deployment manifests by right-clicking on them in vscode and selecting "Generate IoT Edge deployment manifest".
+Resulting templates will be saved in the "_config_" subfolder ready to be uploaded with in the device template of IoT Central.
+
+### Build and publish container images
+
+The Azure IoT Tools extension provides simple commands to build and publish container on the preferred container registry.
+If you need more control and prefer manual steps, modules can be easily built by running the following from each module folder:
+
+```sh
+docker build -t <registry><account>/<module-name>:<arch>.<config> -f Dockerfile.<arch>.<config>
+# docker build -t <acrname>.azurecr.io:amd64.debug -f Dockerfile.amd64.debug
+
+docker push <registry><account>/<module-name>:<arch>.<config>
+# docker push <acrname>.azurecr.io:amd64.debug
+```
+
+### Running sample clients
 
 Once edge device gets configured, run the downstream client in _downstream/client.py_ folder from the same machine/VM.
 Best to create a python virtualenv and run
@@ -27,5 +46,6 @@ python -m pip install -r requirements.txt
 before launch it.
 
 ```bash
-python ./client.py "<DEVICE_ID>" "<DEVICE_SYMM_KEY>"
+python ./client.py "<DEVICE_ID>"
 ```
+If you like to run your clients from outside the Edge machine, change the "HOST" variable at line [7](./downstream/client.py#L7) of client.py

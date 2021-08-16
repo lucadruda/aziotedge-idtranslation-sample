@@ -7,9 +7,10 @@ from random import randint
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 64132        # The port used by the server
 
+
 class Client():
 
-    def __init__(self, id, key):
+    def __init__(self, id, key=None):
         self._id = id
         self._key = key
         self.terminate = False
@@ -50,7 +51,8 @@ class Client():
                     else:
                         self._on_cmd(payload['data'])
             else:
-                print('Unknown message type "{}":{}'.format(payload.type, payload['data']))
+                print('Unknown message type "{}":{}'.format(
+                    payload.type, payload['data']))
 
     async def start(self):
         self._reader, self._writer = await asyncio.open_connection(HOST, PORT)
@@ -66,21 +68,25 @@ class Client():
             await self._writer.wait_closed()
 
     async def connect(self):
-        self._writer.write(json.dumps({'type': 'connect', 'id': self._id, 'data': {'custom': True}}).encode() + b'\n')
+        self._writer.write(json.dumps({'type': 'connect', 'id': self._id, 'data': {
+                           'custom': True, 'primaryKey': self._key} if self._key is not None else {}}).encode() + b'\n')
         await self._writer.drain()
 
     async def send_telemetry(self, message):
-        payload = json.dumps({'type': 'telemetry', 'id': self._id, 'data': message})
+        payload = json.dumps(
+            {'type': 'telemetry', 'id': self._id, 'data': message})
         print('Sending telemetry {}'.format(payload))
         self._writer.write(payload.encode() + b'\n')
         await self._writer.drain()
 
     async def send_property(self, message):
-        self._writer.write(json.dumps({'type': 'property', 'id': self._id, 'data': message}).encode() + b'\n')
+        self._writer.write(json.dumps(
+            {'type': 'property', 'id': self._id, 'data': message}).encode() + b'\n')
         await self._writer.drain()
 
     async def get_twin(self):
-        self._writer.write(json.dumps({'type': 'twin_req', 'id': self._id}).encode() + b'\n')
+        self._writer.write(json.dumps(
+            {'type': 'twin_req', 'id': self._id}).encode() + b'\n')
         await self._writer.drain()
         print("Waiting for twin")
 
@@ -94,7 +100,7 @@ class Client():
 
 
 async def main():
-    client = Client(argv[1], argv[2])
+    client = Client(argv[1], argv[2] if len(argv) > 2 else None)
     await client.start()
     await client.get_twin()
     # await client.send_property({'fanSpeed': 10})
