@@ -59,7 +59,7 @@ async def main():
     # set the received data handlers on the client
     module_client.on_message_received = message_handler
     while not _terminate:
-        asyncio.sleep(0.1)
+        await asyncio.sleep(0.1)
 
 
 asyncio.run(main())
