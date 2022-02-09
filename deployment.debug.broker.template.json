@@ -107,6 +107,37 @@
                 "value": "translator"
               }
             }
+          },
+          "ProvisioningModule": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.ProvisioningModule.debug}",
+              "createOptions": {
+                "ExposedPorts": {
+                  "5679/tcp": {}
+                },
+                "HostConfig": {
+                  "Binds": [
+                    "/etc/aziot/config.toml:/app/config.toml:ro"
+                  ],
+                  "PortBindings": {
+                    "5679/tcp": [
+                      {
+                        "HostPort": "5679"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "env": {
+              "RuntimeLogLevel": {
+                "value": "debug"
+              }
+            }
           }
         }
       }
@@ -142,23 +173,38 @@
               "allow": [
                 {
                   "operations": [
+                    "mqtt:connect",
                     "mqtt:publish",
                     "mqtt:subscribe"
                   ],
                   "resources": [
                     "$iothub/+/messages/events/#",
                     "$iothub/#",
+                    "$edgehub/#",
                     "$iothub/+/twin/get/#",
                     "$iothub/+/twin/res/#",
                     "$iothub/+/twin/desired/#",
                     "$iothub/+/twin/reported/#",
-                    "$iothub/+/methods/res/#"
+                    "$iothub/+/methods/res/#",
+                    "$edgehub/+/twin/desired/#"
                   ]
                 }
               ]
             }
           ]
         }
+      }
+    },
+    "IdTranslator": {
+      "properties.desired": {
+        "EnrollmentGroupKey": "$ENROLLMENT_KEY",
+        "DownstreamModelId": "$DOWNSTREAM_MODEL_ID",
+        "ApiKey": "$API_KEY"
+      }
+    },
+    "ProvisioningModule": {
+      "properties.desired": {
+        "ENROLLMENT_KEY": "$ENROLLMENT_KEY"
       }
     }
   }
