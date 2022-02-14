@@ -102,10 +102,13 @@ class Client():
 async def main():
     client = Client(argv[1], argv[2] if len(argv) > 2 else None)
     await client.start()
+    await asyncio.sleep(1)
     await client.get_twin()
-    # await client.send_property({'fanSpeed': 10})
+    await asyncio.sleep(1)
+    await client.send_property({'assetId': 'dummy'})
+    await asyncio.sleep(1)
     while not client.terminate:
-        await client.send_telemetry({'temperature': randint(10, 40)})
+        await client.send_telemetry({'lastReadDate': 'custom_date'})
         await asyncio.sleep(7.0)
 
 asyncio.run(main())

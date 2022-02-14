@@ -1,3 +1,10 @@
 config/
 .env
 .vscode
+
+# Python
+.pyenv
+.env3.8
+
+# .NET
+out/

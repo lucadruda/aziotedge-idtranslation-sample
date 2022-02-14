@@ -8,20 +8,14 @@
           "settings": {
             "minDockerVersion": "v1.25",
             "loggingOptions": "",
-            "registryCredentials": {
-              "docker": {
-                "username": "$CONTAINER_REGISTRY_USERNAME_docker",
-                "password": "$CONTAINER_REGISTRY_PASSWORD_docker",
-                "address": "docker.io"
-              }
-            }
+            "registryCredentials": {}
           }
         },
         "systemModules": {
           "edgeAgent": {
             "type": "docker",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-agent:1.2",
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.2.7",
               "createOptions": {}
             }
           },
@@ -30,7 +24,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-hub:1.2",
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.2.7",
               "createOptions": {
                 "HostConfig": {
                   "PortBindings": {
@@ -144,16 +138,6 @@
                 "value": "debug"
               }
             }
-          },
-          "TranslatorNet": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.TranslatorNet}",
-              "createOptions": {}
-            }
           }
         }
       }
@@ -163,8 +147,7 @@
         "schemaVersion": "1.2",
         "routes": {
           "Upstream": "FROM /messages/* INTO $upstream",
-          "Provision": "FROM /messages/* WHERE message_type='provision' INTO BrokeredEndpoint('/modules/ProvisioningModule/inputs/new_reg')",
-          "TranslatorNetToIoTHub": "FROM /messages/modules/TranslatorNet/outputs/* INTO $upstream"
+          "Provision": "FROM /messages/* WHERE message_type='provision' INTO BrokeredEndpoint('/modules/ProvisioningModule/inputs/new_reg')"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200

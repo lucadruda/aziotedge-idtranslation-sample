@@ -75,31 +75,21 @@
           }
         },
         "modules": {
-          "IdTranslator": {
+          "TranslatorNet": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "${MODULES.IdTranslator.debug}",
+              "image": "${MODULES.TranslatorNet.debug}",
               "createOptions": {
                 "ExposedPorts": {
-                  "5678/tcp": {},
-                  "64132/tcp": {}
+                  "64132/udp": {}
                 },
                 "HostConfig": {
-                  "Binds": [
-                    "/etc/ssl/certs/:/etc/ssl/certs/:ro",
-                    "/etc/aziot/config.toml:/app/config.toml:ro",
-                    "/home/azureuser/work/server/:/app/server/:ro"
-                  ],
+                  "Binds": ["/home/azureuser/work/source/:/app/"],
                   "PortBindings": {
-                    "5678/tcp": [
-                      {
-                        "HostPort": "5678"
-                      }
-                    ],
-                    "64132/tcp": [
+                    "64132/udp": [
                       {
                         "HostPort": "64132"
                       }
@@ -107,52 +97,6 @@
                   }
                 }
               }
-            },
-            "env": {
-              "ID_TRANSLATOR_TYPE": {
-                "value": "translator"
-              }
-            }
-          },
-          "ProvisioningModule": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.ProvisioningModule.debug}",
-              "createOptions": {
-                "ExposedPorts": {
-                  "5679/tcp": {}
-                },
-                "HostConfig": {
-                  "Binds": [
-                    "/etc/aziot/config.toml:/app/config.toml:ro"
-                  ],
-                  "PortBindings": {
-                    "5679/tcp": [
-                      {
-                        "HostPort": "5679"
-                      }
-                    ]
-                  }
-                }
-              }
-            },
-            "env": {
-              "RuntimeLogLevel": {
-                "value": "debug"
-              }
-            }
-          },
-          "TranslatorNet": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.TranslatorNet}",
-              "createOptions": {}
             }
           }
         }
@@ -172,21 +116,15 @@
         "mqttBroker": {
           "authorizations": [
             {
-              "identities": [
-                "{{iot:identity}}"
-              ],
+              "identities": ["{{iot:identity}}"],
               "allow": [
                 {
-                  "operations": [
-                    "mqtt:connect"
-                  ]
+                  "operations": ["mqtt:connect"]
                 }
               ]
             },
             {
-              "identities": [
-                "{{iot:identity}}"
-              ],
+              "identities": ["{{iot:identity}}"],
               "allow": [
                 {
                   "operations": [
@@ -212,16 +150,11 @@
         }
       }
     },
-    "IdTranslator": {
+    "TranslatorNet": {
       "properties.desired": {
         "EnrollmentGroupKey": "$ENROLLMENT_KEY",
         "DownstreamModelId": "$DOWNSTREAM_MODEL_ID",
         "ApiKey": "$API_KEY"
-      }
-    },
-    "ProvisioningModule": {
-      "properties.desired": {
-        "ENROLLMENT_KEY": "$ENROLLMENT_KEY"
       }
     }
   }
